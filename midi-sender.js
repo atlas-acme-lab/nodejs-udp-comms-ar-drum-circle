@@ -38,25 +38,28 @@ midi_input.on('message', (deltaTime, message) => {
   //   [status, data1, data2]
   // https://www.cs.cf.ac.uk/Dave/Multimedia/node158.html has some helpful
   // information interpreting the messages.
-  console.log(`m: ${message} d: ${deltaTime}`);
-  //sending msg
-  setTimeout(() => {
-    midi_to_server_socket.send(Buffer.from(message.join(',') + '-'), port_num, server_address, function (err, bytesWritten) {
+  let note_on_event = message[0] === 153
+  if (note_on_event) {
+    //console.log(`m: ${message} d: ${deltaTime}`);
+    //sending msg
+  setImmediate(() => {
+    midi_to_server_socket.send(Buffer.from(message.join(',')), port_num, server_address, function (err, bytesWritten) {
     if (err) {
         console.log('Error!');
     } else {
-        console.log('Sent ' + bytesWritten + ' bytes to the client!');
+        console.log('Sent ' + bytesWritten + ' bytes to the server!');
     }
   })
     
-    midi_to_android_socket.send(Buffer.from(message.join(',') + '-'), port_num, android_address, function (err, bytesWritten) {
+    midi_to_android_socket.send(Buffer.from(message.join(',')), port_num, android_address, function (err, bytesWritten) {
       if (err) {
           console.log('Error!');
       } else {
-          console.log('Sent ' + bytesWritten + ' bytes to the client!');
+          console.log('Sent ' + bytesWritten + ' bytes to the local android client!');
       }
     })
-}, 1)
+})
+  }
   
 });
 

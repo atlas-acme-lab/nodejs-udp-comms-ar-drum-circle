@@ -28,8 +28,8 @@ function forwardDataToParticipants(server, msg, info, clients) {
   let sender_address = info.address
   let tagged_msg_dict = {}
 
-  tagged_msg_dict[sender_address] =  msg.toString()
-  let tagged_msg = new Buffer.from(JSON.stringify(tagged_msg_dict));
+  //tagged_msg_dict[sender_address] =  msg.toString()
+  //let tagged_msg = new Buffer.from(JSON.stringify(tagged_msg_dict));
 
   for (let client_ip in clients) {
     if (sender_address === client_ip){
@@ -37,7 +37,7 @@ function forwardDataToParticipants(server, msg, info, clients) {
     } else {
       let receiver_port = clients[client_ip];
       let receiver_address = client_ip;
-      server.send(tagged_msg, 
+      server.send(msg, 
                   receiver_port, 
                   receiver_address, function(error){
         if(error){
