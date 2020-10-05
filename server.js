@@ -18,6 +18,8 @@ server.on('error',function(error){
 });
 // emits on new datagram msg
 server.on('message', function(msg, info){
+    let msg_str = msg.toString();
+    if (msg_str.includes('android'))
     console.log('Data received from client : ' + msg.toString());
     console.log('Received %d bytes from %s:%d\n',msg.length, info.address, info.port);
     clients[info.address] = info.port;
