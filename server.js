@@ -2,7 +2,6 @@ var udp = require('dgram');
 var st = require('./server-tools')
 
 const port_num = 7777;
-let clients = {};
 let android_clients = {};
 let midi_clients = {};
 let multiple_android_clients = false;
