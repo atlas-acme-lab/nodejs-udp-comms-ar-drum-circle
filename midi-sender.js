@@ -4,9 +4,14 @@ const buffer = require('buffer');
 
 // -------------------- udp client ----------------
 
-const port_num = 7777;
 const server_address = '192.168.0.92'; // Local host
+const server_port = 7777;
+
 const android_address = '192.168.0.94'; // Android IP on local network
+const android_port = 7778;
+
+const midi_sender_id = 'dsholes_midi';
+
 
 
 // creating a client socket
@@ -22,8 +27,7 @@ console.log(midi_input.getPortCount());
 // Get the name of a specified midi_input port.
 console.log(midi_input.getPortName(0));
 
-var data1 = Buffer.from('dsholes-midi_to_server_socket');
-midi_to_server_socket.send(data1, port_num, server_address,function(error){
+midi_to_server_socket.send(Buffer.from(midi_sender_id), server_port, server_address,function(error){
   if(error){
     client.close();
   }else{
@@ -38,20 +42,21 @@ midi_input.on('message', (deltaTime, message) => {
   //   [status, data1, data2]
   // https://www.cs.cf.ac.uk/Dave/Multimedia/node158.html has some helpful
   // information interpreting the messages.
-  let note_on_event = message[0] === 153
+  message.push(midi_sender_id);
+  let note_on_event = message[0] === 153;
   if (note_on_event) {
     //console.log(`m: ${message} d: ${deltaTime}`);
     //sending msg
-  setImmediate(() => {
-    midi_to_server_socket.send(Buffer.from(message.join(',')), port_num, server_address, function (err, bytesWritten) {
-    if (err) {
-        console.log('Error!');
-    } else {
-        console.log('Sent ' + bytesWritten + ' bytes to the server!');
-    }
-  })
+    setImmediate(() => {
+      midi_to_server_socket.send(Buffer.from(message.join(',')), server_port, server_address, function (err, bytesWritten) {
+      if (err) {
+          console.log('Error!');
+      } else {
+          console.log('Sent ' + bytesWritten + ' bytes to the server!');
+      }
+    })
     
-    midi_to_android_socket.send(Buffer.from(message.join(',')), port_num, android_address, function (err, bytesWritten) {
+    midi_to_android_socket.send(Buffer.from(message.join(',')), android_port, android_address, function (err, bytesWritten) {
       if (err) {
           console.log('Error!');
       } else {
@@ -76,17 +81,6 @@ midi_input.openPort(0);
 midi_input.ignoreTypes(false, false, false);
 
 // ... receive MIDI messages ...
-
-
-
-
-
-
-//buffer msg
-var data1 = Buffer.from('dsholes-midi_to_server_socket');
-// var data1 = Buffer.from('hello');
-
-
 
 midi_to_server_socket.on('message',function(msg,info){
     console.log('Data received from server : ' + msg.toString());

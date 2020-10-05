@@ -6,7 +6,8 @@ import socket
 
 ANDROID_ADDRESS = '192.168.0.94'
 SERVER_ADDRESS = '192.168.0.92' # Local, need to change if not local
-PORT = 7777
+SERVER_PORT = 7777
+ANDROID_PORT = 7778
 MIDI_TO_ANDROID_SOCKET = socket.socket(
     socket.AF_INET, socket.SOCK_DGRAM
     )
@@ -18,8 +19,8 @@ def callback(data, time_stamp):
     event, note, vel = data
 
     if event == 153: # note on/off
-        android_endpoint = (ANDROID_ADDRESS, PORT)
-        server_endpoint = (SERVER_ADDRESS, PORT)
+        android_endpoint = (ANDROID_ADDRESS, ANDROID_PORT)
+        server_endpoint = (SERVER_ADDRESS, SERVER_PORT)
 
         MESSAGE = "{0},{1},{2}".format(event, note, vel)
 
