@@ -1,9 +1,12 @@
 var udp = require('dgram');
 var st = require('./server-tools')
 
-var port_num = 7777;
-var clients = {};
-var multiuser = false;
+const port_num = 7777;
+let clients = {};
+let android_clients = {};
+let midi_clients = {};
+let multiple_android_clients = false;
+let multiple_midi_clients = false;
 
 // Need to add some level of security. Maybe first message
 // contains password? How to only allow certain IPs?
@@ -18,23 +21,42 @@ server.on('error',function(error){
 });
 // emits on new datagram msg
 server.on('message', function(msg, info){
-    let msg_str = msg.toString();
-    if (msg_str.includes('android'))
-    console.log('Data received from client : ' + msg.toString());
-    console.log('Received %d bytes from %s:%d\n',msg.length, info.address, info.port);
-    clients[info.address] = info.port;
-    var clients_length = Object.keys(clients).length
-    if (clients_length === 1){
-      st.sendSingleClientMessage(server, info.port, info.address)
-    } else if (clients_length > 1 && multiuser===false){
-      // This is used only once to verify there are at least 2 unique
-      // clients that have communicated with the server
-      st.sendMultiClientMessage(server, clients)
-      multiuser = true
-    } else {
-      st.forwardDataToParticipants(server, msg, info, clients)
+  let msg_arr = msg.toString().split(';');
+  let user_name = msg_arr[0];
+  let client_type = msg_arr[1];
+  let data = msg_arr[2];
+  if (data === 'handshake') {
+    if (client_type === 'android') {
+      android_clients[user_name] = [info.address, info.port];
+      let android_client_keys = Object.keys(android_clients)
+      if (android_client_keys.length === 1){
+        let address = android_clients[user_name][0]
+        let port = android_clients[user_name][1]
+        st.sendSingleClientMessage(server, port, address)
+      } else {
+        st.sendMultiClientMessage(server, android_clients)
+        multiple_android_clients = true
+      }
+    } else if (client_type === 'midi') {
+      midi_clients[user_name] = [info.address, info.port];
+      let midi_client_keys = Object.keys(midi_clients)
+      if (midi_client_keys.length === 1) {
+        let address = midi_clients[user_name][0]
+        let port = midi_clients[user_name][1]
+        st.sendSingleClientMessage(server, port, address)
+      } else {
+        st.sendMultiClientMessage(server, midi_clients)
+        multiple_midi_clients = true
+      }
     }
-  });
+  } else if (multiple_midi_clients && multiple_android_clients){
+
+    st.forwardDataToParticipants(server, msg, user_name, android_clients)
+  } else {
+    st.sendNotEnoughParticipantsMessage(server, info, midi_clients, android_clients)
+  }
+  console.log('Data received from %s:%d: %s',info.address, info.port,msg.toString());
+});
 
 //emits when socket is ready and listening for datagram msgs
 server.on('listening',function(){

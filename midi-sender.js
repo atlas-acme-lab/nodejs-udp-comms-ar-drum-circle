@@ -10,7 +10,10 @@ const server_port = 7777;
 const android_address = '192.168.0.94'; // Android IP on local network
 const android_port = 7778;
 
-const midi_sender_id = 'dsholes_midi';
+const user_name = 'dsholes';
+const client_type = 'midi';
+
+const handshake_msg = `${user_name};${client_type};handshake`
 
 
 
@@ -27,7 +30,7 @@ console.log(midi_input.getPortCount());
 // Get the name of a specified midi_input port.
 console.log(midi_input.getPortName(0));
 
-midi_to_server_socket.send(Buffer.from(midi_sender_id), server_port, server_address,function(error){
+midi_to_server_socket.send(Buffer.from(handshake_msg), server_port, server_address,function(error){
   if(error){
     client.close();
   }else{
@@ -42,25 +45,26 @@ midi_input.on('message', (deltaTime, message) => {
   //   [status, data1, data2]
   // https://www.cs.cf.ac.uk/Dave/Multimedia/node158.html has some helpful
   // information interpreting the messages.
-  message.push(midi_sender_id);
+  let midi_data = message.join(',')
+  let midi_packet = `${user_name};${client_type};${midi_data}`
   let note_on_event = message[0] === 153;
   if (note_on_event) {
     //console.log(`m: ${message} d: ${deltaTime}`);
     //sending msg
     setImmediate(() => {
-      midi_to_server_socket.send(Buffer.from(message.join(',')), server_port, server_address, function (err, bytesWritten) {
+      midi_to_server_socket.send(Buffer.from(midi_packet), server_port, server_address, function (err, bytesWritten) {
       if (err) {
           console.log('Error!');
       } else {
-          console.log('Sent ' + bytesWritten + ' bytes to the server!');
+        console.log(`Sent ${midi_packet} to the server!`);
       }
     })
     
-    midi_to_android_socket.send(Buffer.from(message.join(',')), android_port, android_address, function (err, bytesWritten) {
+    midi_to_android_socket.send(Buffer.from(midi_packet), android_port, android_address, function (err, bytesWritten) {
       if (err) {
           console.log('Error!');
       } else {
-          console.log('Sent ' + bytesWritten + ' bytes to the local android client!');
+          console.log(`Sent ${midi_packet} to the local android client!`);
       }
     })
 })
