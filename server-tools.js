@@ -1,5 +1,5 @@
 function sendSingleClientMessage(server, port, address){
-  let new_msg = new Buffer.from("0, You're the only participant")
+  let new_msg = new Buffer.from("alert;alone")
   server.send(new_msg, port, address,function(error){
     if(error){
       console.log('Error!!!');
@@ -9,11 +9,11 @@ function sendSingleClientMessage(server, port, address){
   })
 }
 
-function sendMultiClientMessage(server, android_clients) {
-  for (let client_ip in android_clients) {
-    let new_msg = new Buffer.from("You're connected with someone!");
-    let port = clients[client_ip][1];
-    let address = client_ip;
+function sendMultiClientMessage(server, clients) {
+  for (let user_name in clients) {
+    let new_msg = new Buffer.from("alert;connected");
+    let address = clients[user_name][0];
+    let port = clients[user_name][1];
     server.send(new_msg, port,address,function(error){
       if(error){
         console.log('Error!!!');
@@ -30,8 +30,8 @@ function forwardDataToParticipants(server, msg, sender_name, android_clients) {
     if (sender_name === client_ip){
       continue;
     } else {
-      let receiver_port = android_clients[client_ip];
-      let receiver_address = client_ip;
+      let receiver_address = android_clients[client_ip][0];
+      let receiver_port = android_clients[client_ip][1];
       server.send(msg, 
                   receiver_port, 
                   receiver_address, function(error){
@@ -47,7 +47,7 @@ function forwardDataToParticipants(server, msg, sender_name, android_clients) {
 }
 
 function sendNotEnoughParticipantsMessage(server, info, midi_clients, android_clients) {
-  let new_msg = 'Not enough participants: ' + JSON.stringify(android_clients) + ' ' + JSON.stringify(midi_clients)
+  let new_msg = 'alert;notEnoughParticipants'
   server.send(new_msg, info.port, info.address, function (error) {
     if (error) {
       console.log('Error!!!');

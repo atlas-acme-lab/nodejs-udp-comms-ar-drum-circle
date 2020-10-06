@@ -5,6 +5,7 @@ const buffer = require('buffer');
 // -------------------- udp client ----------------
 
 const server_address = '192.168.0.92'; // Local host
+// Add 'external' server address
 const server_port = 7777;
 
 const android_address = '192.168.0.94'; // Android IP on local network
@@ -48,7 +49,8 @@ midi_input.on('message', (deltaTime, message) => {
   let midi_data = message.join(',')
   let midi_packet = `${user_name};${client_type};${midi_data}`
   let note_on_event = message[0] === 153;
-  if (note_on_event) {
+  let velocity_not_zero = message[2] !== 0;
+  if (note_on_event && velocity_not_zero) {
     //console.log(`m: ${message} d: ${deltaTime}`);
     //sending msg
     setImmediate(() => {
